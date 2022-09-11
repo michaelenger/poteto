@@ -1,6 +1,7 @@
 #[cfg(feature = "buddy-alloc")]
 mod alloc;
 mod game;
+mod input;
 mod palette;
 mod wasm4;
 
