@@ -15,12 +15,7 @@ lazy_static! {
 
 #[no_mangle]
 fn start() {
-    palette::set_palette([
-        0xfff6d3,
-        0xf9a875,
-        0xeb6b6f,
-        0x7c3f58,
-    ]);
+    palette::set_palette([0xfff6d3, 0xf9a875, 0xeb6b6f, 0x7c3f58]);
 }
 
 #[no_mangle]
