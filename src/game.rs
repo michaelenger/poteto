@@ -1,7 +1,7 @@
 use crate::input::{ButtonState, Gamepad};
 use crate::palette::set_colors;
+use crate::rng::Rng;
 use crate::wasm4;
-use fastrand::Rng;
 
 pub struct Game {
     destiny: u32,
@@ -10,7 +10,6 @@ pub struct Game {
     main_result: u8,
     sub_result: u8,
     hurl_cost: u8,
-    seed_counter: u64,
     gamepad: Gamepad,
     rng: Rng,
 }
@@ -24,9 +23,8 @@ impl Game {
             main_result: 0,
             sub_result: 0,
             hurl_cost: 1,
-            seed_counter: 0,
             gamepad: Gamepad::new(),
-            rng: Rng::with_seed(1),
+            rng: Rng::new(),
         }
     }
 
@@ -100,8 +98,6 @@ impl Game {
     }
 
     fn roll(&mut self) {
-        self.rng.seed(self.seed_counter);
-
         self.main_result = self.rng.u8(1..7);
         self.sub_result = self.rng.u8(1..7);
 
@@ -188,11 +184,7 @@ impl Game {
         self.gamepad.update();
 
         if !self.is_game_over() {
-            if self.seed_counter < u64::MAX {
-                self.seed_counter += 1
-            } else {
-                self.seed_counter = 0
-            }
+            self.rng.tick();
 
             if self.gamepad.one == ButtonState::Released {
                 self.roll();

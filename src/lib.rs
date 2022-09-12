@@ -3,6 +3,7 @@ mod alloc;
 mod game;
 mod input;
 mod palette;
+mod rng;
 mod wasm4;
 
 use game::Game;
