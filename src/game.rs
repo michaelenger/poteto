@@ -174,8 +174,9 @@ impl Game {
     }
 
     fn hurl(&mut self) {
-        if self.hurl_cost as u32 <= self.potatoes {
+        if self.orcs > 0 && self.hurl_cost as u32 <= self.potatoes {
             self.potatoes -= self.hurl_cost as u32;
+            self.orcs -= 1;
         }
     }
 
