@@ -162,9 +162,14 @@ impl Game {
                 }
                 0 | 7..=u8::MAX => panic!("how?"),
             }
-        } else {
+        } else if self.main_result == 5 {
             // The world becomes darker...
             self.hurl_cost += 1
+        } else {
+            // The world becomes brighter...
+            if self.hurl_cost > 1 {
+                self.hurl_cost -= 1;
+            }
         }
     }
 
