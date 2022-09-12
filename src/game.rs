@@ -10,6 +10,7 @@ pub struct Game {
     main_result: u8,
     sub_result: u8,
     hurl_cost: u8,
+    day_counter: u8,
     gamepad: Gamepad,
     rng: Rng,
 }
@@ -23,6 +24,7 @@ impl Game {
             main_result: 0,
             sub_result: 0,
             hurl_cost: 1,
+            day_counter: 1,
             gamepad: Gamepad::new(),
             rng: Rng::new(),
         }
@@ -42,10 +44,13 @@ impl Game {
         wasm4::text("Orcs", 5, 90);
 
         // Pips
-        set_colors(0x03);
         self.draw_pips(self.destiny, 5, 40);
         self.draw_pips(self.potatoes, 5, 70);
         self.draw_pips(self.orcs, 5, 100);
+
+        // Day counter
+        set_colors(0x03);
+        wasm4::text(format!("Day:{:02}", self.day_counter), 106, 5);
 
         if self.is_game_over() {
             set_colors(0x04);
@@ -98,6 +103,7 @@ impl Game {
     }
 
     fn roll(&mut self) {
+        self.day_counter += 1;
         self.main_result = self.rng.u8(1..7);
         self.sub_result = self.rng.u8(1..7);
 
