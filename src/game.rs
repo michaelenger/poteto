@@ -1,6 +1,7 @@
 use crate::input::{ButtonState, Gamepad};
 use crate::palette::set_colors;
 use crate::rng::Rng;
+use crate::sprites;
 use crate::wasm4;
 
 pub struct Game {
@@ -61,27 +62,30 @@ impl Game {
             // Buttons
             if self.gamepad.one == ButtonState::Held || self.gamepad.one == ButtonState::Pressed {
                 set_colors(0x04);
-                wasm4::text("(X)ROLL", 10, 131);
+                wasm4::text("(X)ROLL", 10, 126);
             } else {
                 set_colors(0x02);
-                wasm4::text("(X)ROLL", 10, 131);
+                wasm4::text("(X)ROLL", 10, 126);
                 set_colors(0x04);
-                wasm4::text("(X)ROLL", 10, 130);
+                wasm4::text("(X)ROLL", 10, 125);
             }
 
             if self.gamepad.two == ButtonState::Held || self.gamepad.two == ButtonState::Pressed {
                 set_colors(0x04);
-                wasm4::text("(Z)HURL", 90, 131);
+                wasm4::text("(Z)HURL", 90, 126);
             } else {
                 set_colors(0x02);
-                wasm4::text("(Z)HURL", 90, 131);
+                wasm4::text("(Z)HURL", 90, 126);
                 set_colors(0x04);
-                wasm4::text("(Z)HURL", 90, 130);
+                wasm4::text("(Z)HURL", 90, 125);
             }
+
+            // Dice
+            sprites::die(self.main_result, 21, 138);
+            sprites::die(self.sub_result, 41, 138);
 
             // Roll and hurl data
             set_colors(0x04);
-            wasm4::text(format!("{} {}", self.main_result, self.sub_result), 28, 142);
             wasm4::text(format!("{}", self.hurl_cost), 118, 142);
         }
     }
@@ -166,12 +170,14 @@ impl Game {
             }
         } else if self.main_result == 5 {
             // The world becomes darker...
-            self.hurl_cost += 1
+            self.hurl_cost += 1;
+            self.sub_result = 0;
         } else {
             // The world becomes brighter...
             if self.hurl_cost > 1 {
                 self.hurl_cost -= 1;
             }
+            self.sub_result = 0;
         }
     }
 

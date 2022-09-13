@@ -4,6 +4,7 @@ mod game;
 mod input;
 mod palette;
 mod rng;
+mod sprites;
 mod wasm4;
 
 use game::Game;
