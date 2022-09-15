@@ -1,4 +1,5 @@
 use crate::input::{ButtonState, Gamepad};
+use crate::minifont;
 use crate::palette::set_colors;
 use crate::rng::Rng;
 use crate::sprites;
@@ -84,9 +85,10 @@ impl Game {
             sprites::die(self.main_result, 21, 138);
             sprites::die(self.sub_result, 41, 138);
 
-            // Roll and hurl data
-            set_colors(0x04);
-            wasm4::text(format!("{}", self.hurl_cost), 118, 142);
+            // Hurl data
+            set_colors(0x21);
+            minifont::draw(format!("-{} potatoes", self.hurl_cost), 97, 140);
+            minifont::draw("-1 orcs".into(), 105, 146);
         }
     }
 

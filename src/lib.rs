@@ -2,6 +2,7 @@
 mod alloc;
 mod game;
 mod input;
+mod minifont;
 mod palette;
 mod rng;
 mod sprites;
