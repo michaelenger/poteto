@@ -26,7 +26,7 @@ const CHAR_HEIGHT: u32 = 6;
 
 /// Draw some text using the mini font.
 pub fn draw(text: String, x: i32, y: i32) {
-    let mut offset: u32 = 0;
+    let mut offset: i32 = -((text.len() / 2) as i32);
 
     for character in text.chars() {
         let mut char_index = character as u32;
@@ -37,10 +37,11 @@ pub fn draw(text: String, x: i32, y: i32) {
 
         let row = (char_index as f32 / 16.0).floor() as u32;
         let column = char_index % 16;
+        let char_offset = offset * (CHAR_WIDTH as i32);
 
         wasm4::blit_sub(
             &FONT,
-            x + (offset * CHAR_WIDTH) as i32,
+            x + char_offset,
             y,
             CHAR_WIDTH,
             CHAR_HEIGHT,

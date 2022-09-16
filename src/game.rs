@@ -73,15 +73,16 @@ impl Game {
                 self.gamepad.two == ButtonState::Held || self.gamepad.two == ButtonState::Pressed
             );
 
-
             // Dice
             sprites::die(self.main_result, 21, 138);
             sprites::die(self.sub_result, 41, 138);
 
             // Hurl data
             set_colors(0x21);
-            minifont::draw(format!("-{} potatoes", self.hurl_cost), 97, 140);
-            minifont::draw("-1 orcs".into(), 105, 146);
+            minifont::draw(format!("-{} potatoes", self.hurl_cost), 117, 140);
+            minifont::draw("-1 orcs".into(), 117, 146);
+        }
+    }
 
     fn draw_button(&self, text: &str, x: i32, y: i32, down: bool) {
         if down {
