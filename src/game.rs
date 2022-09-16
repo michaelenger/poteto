@@ -61,25 +61,18 @@ impl Game {
             wasm4::text("GAME OVER", 42, 130);
         } else {
             // Buttons
-            if self.gamepad.one == ButtonState::Held || self.gamepad.one == ButtonState::Pressed {
-                set_colors(0x04);
-                wasm4::text("(X)ROLL", 10, 126);
-            } else {
-                set_colors(0x02);
-                wasm4::text("(X)ROLL", 10, 126);
-                set_colors(0x04);
-                wasm4::text("(X)ROLL", 10, 125);
-            }
+            self.draw_button(
+                "(X)ROLL",
+                10, 128,
+                self.gamepad.one == ButtonState::Held || self.gamepad.one == ButtonState::Pressed
+            );
 
-            if self.gamepad.two == ButtonState::Held || self.gamepad.two == ButtonState::Pressed {
-                set_colors(0x04);
-                wasm4::text("(Z)HURL", 90, 126);
-            } else {
-                set_colors(0x02);
-                wasm4::text("(Z)HURL", 90, 126);
-                set_colors(0x04);
-                wasm4::text("(Z)HURL", 90, 125);
-            }
+            self.draw_button(
+                "(Z)HURL",
+                90, 128,
+                self.gamepad.two == ButtonState::Held || self.gamepad.two == ButtonState::Pressed
+            );
+
 
             // Dice
             sprites::die(self.main_result, 21, 138);
@@ -89,6 +82,16 @@ impl Game {
             set_colors(0x21);
             minifont::draw(format!("-{} potatoes", self.hurl_cost), 97, 140);
             minifont::draw("-1 orcs".into(), 105, 146);
+
+    fn draw_button(&self, text: &str, x: i32, y: i32, down: bool) {
+        if down {
+            set_colors(0x04);
+            wasm4::text(text, x, y + 1);
+        } else {
+            set_colors(0x02);
+            wasm4::text(text, x, y + 1);
+            set_colors(0x04);
+            wasm4::text(text, x, y);
         }
     }
 
