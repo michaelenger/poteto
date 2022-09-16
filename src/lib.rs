@@ -5,6 +5,7 @@ mod input;
 mod minifont;
 mod palette;
 mod rng;
+mod roll;
 mod sprites;
 mod wasm4;
 

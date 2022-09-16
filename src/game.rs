@@ -2,19 +2,19 @@ use crate::input::{ButtonState, Gamepad};
 use crate::minifont;
 use crate::palette::set_colors;
 use crate::rng::Rng;
+use crate::roll::{Roll, RollEffect};
 use crate::sprites;
 use crate::wasm4;
 
 pub struct Game {
-    destiny: u32,
-    potatoes: u32,
-    orcs: u32,
-    main_result: u8,
-    sub_result: u8,
+    destiny: u8,
+    potatoes: u8,
+    orcs: u8,
     hurl_cost: u8,
     day_counter: u8,
     gamepad: Gamepad,
     rng: Rng,
+    roll: Option<Roll>,
 }
 
 impl Game {
@@ -23,12 +23,11 @@ impl Game {
             destiny: 0,
             potatoes: 0,
             orcs: 0,
-            main_result: 0,
-            sub_result: 0,
             hurl_cost: 1,
             day_counter: 1,
             gamepad: Gamepad::new(),
             rng: Rng::new(),
+            roll: None,
         }
     }
 
@@ -63,19 +62,26 @@ impl Game {
             // Buttons
             self.draw_button(
                 "(X)ROLL",
-                10, 128,
-                self.gamepad.one == ButtonState::Held || self.gamepad.one == ButtonState::Pressed
+                10,
+                128,
+                self.gamepad.one == ButtonState::Held || self.gamepad.one == ButtonState::Pressed,
             );
 
             self.draw_button(
                 "(Z)HURL",
-                90, 128,
-                self.gamepad.two == ButtonState::Held || self.gamepad.two == ButtonState::Pressed
+                90,
+                128,
+                self.gamepad.two == ButtonState::Held || self.gamepad.two == ButtonState::Pressed,
             );
 
             // Dice
-            sprites::die(self.main_result, 21, 138);
-            sprites::die(self.sub_result, 41, 138);
+            match &self.roll {
+                Some(roll) => {
+                    sprites::die(roll.main_result, 21, 138);
+                    sprites::die(roll.sub_result, 41, 138);
+                }
+                None => {}
+            }
 
             // Hurl data
             set_colors(0x21);
@@ -96,11 +102,11 @@ impl Game {
         }
     }
 
-    fn draw_pips(&self, num: u32, x: i32, y: i32) {
+    fn draw_pips(&self, num: u8, x: i32, y: i32) {
         let size: u32 = 14;
 
-        for i in 0..10 {
-            let offset = (size + 1) * i;
+        for i in 0..10_u8 {
+            let offset = (size + 1) * (i as u32);
 
             if i < num {
                 set_colors(0x03);
@@ -114,82 +120,43 @@ impl Game {
 
     fn roll(&mut self) {
         self.day_counter += 1;
-        self.main_result = self.rng.u8(1..7);
-        self.sub_result = self.rng.u8(1..7);
+        let roll = Roll::new(&mut self.rng);
 
-        if self.main_result < 3 {
-            // In the Garden...
-            match self.sub_result {
-                1 => {
-                    self.potatoes += 1;
-                }
-                2 => {
-                    self.potatoes += 1;
-                    self.destiny += 1;
-                }
-                3 => {
-                    self.destiny += 1;
-                    self.orcs += 1;
-                }
-                4 => {
-                    self.orcs += 1;
-                    if self.potatoes > 0 {
-                        self.potatoes -= 1;
+        for effect in &roll.effects {
+            match effect {
+                RollEffect::Destiny(amount) => {
+                    if *amount < 0 && self.destiny == 0 {
+                        break;
                     }
+                    let val: i8 = (self.destiny as i8) + (*amount as i8);
+                    self.destiny = val as u8;
                 }
-                5 => {
-                    if self.potatoes > 0 {
-                        self.potatoes -= 1;
+                RollEffect::HurlCost(amount) => {
+                    self.hurl_cost += *amount;
+                }
+                RollEffect::Potatoes(amount) => {
+                    if *amount < 0 && self.potatoes == 0 {
+                        break;
                     }
+                    let val: i8 = (self.potatoes as i8) + (*amount as i8);
+                    self.potatoes = val as u8;
                 }
-                6 => {
-                    self.potatoes += 2;
-                }
-                0 | 7..=u8::MAX => panic!("how?"),
-            }
-        } else if self.main_result < 5 {
-            // A Knock at the Door...
-            match self.sub_result {
-                1 => {
-                    self.orcs += 1;
-                }
-                2 => {
-                    self.destiny += 1;
-                }
-                3 => {
-                    self.orcs += 1;
-                    self.destiny += 1;
-                }
-                4 => {
-                    if self.potatoes > 0 {
-                        self.potatoes -= 1;
+                RollEffect::Orcs(amount) => {
+                    if *amount < 0 && self.orcs == 0 {
+                        break;
                     }
-                    self.orcs += 2;
+                    let val: i8 = (self.orcs as i8) + (*amount as i8);
+                    self.orcs = val as u8;
                 }
-                5 => {
-                    self.destiny += 1;
-                }
-                6 => {
-                    self.potatoes += 2;
-                }
-                0 | 7..=u8::MAX => panic!("how?"),
             }
-        } else if self.main_result == 5 {
-            // The world becomes darker...
-            self.hurl_cost += 1;
-            self.sub_result = 0;
-        } else {
-            // The world becomes brighter...
-            if self.hurl_cost > 1 {
-                self.hurl_cost -= 1;
-            }
-            self.sub_result = 0;
         }
+
+        self.roll = Some(roll);
     }
 
     fn hurl(&mut self) {
-        if self.orcs > 0 && self.hurl_cost as u32 <= self.potatoes {
-            self.potatoes -= self.hurl_cost as u32;
+        if self.orcs > 0 && self.hurl_cost <= self.potatoes {
+            self.potatoes -= self.hurl_cost;
             self.orcs -= 1;
         }
     }
