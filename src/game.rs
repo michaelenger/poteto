@@ -42,42 +42,47 @@ impl Game {
 
     fn draw(&self) {
         // Title
-        self.draw_title("POTE~TO", 5, 5);
+        set_colors(0x0431);
+        sprites::logo(5, 5);
+
+        set_colors(0x20);
+        minifont::draw("Based on the RPG".into(), 122, 16);
+        minifont::draw("by Oliver Darkshire".into(), 114, 22);
 
         // Headers
         set_colors(0x04);
-        wasm4::text("Destiny", 5, 30);
-        wasm4::text("Potatoes", 5, 60);
-        wasm4::text("Orcs", 5, 90);
+        wasm4::text("Destiny", 5, 36);
+        wasm4::text("Potatoes", 5, 66);
+        wasm4::text("Orcs", 5, 96);
 
         // Pips
-        self.draw_pips(self.destiny, 5, 40);
-        self.draw_pips(self.potatoes, 5, 70);
-        self.draw_pips(self.orcs, 5, 100);
-
-        // Day counter
-        set_colors(0x03);
-        wasm4::text(format!("Day:{:02}", self.day_counter), 106, 5);
+        self.draw_pips(self.destiny, 5, 46);
+        self.draw_pips(self.potatoes, 5, 76);
+        self.draw_pips(self.orcs, 5, 106);
 
         // Buttons
         self.draw_button(
             "(X)ROLL",
             10,
-            128,
+            130,
             self.gamepad.one == ButtonState::Held || self.gamepad.one == ButtonState::Pressed,
         );
 
         self.draw_button(
             "(Z)HURL",
             90,
-            128,
+            130,
             self.gamepad.two == ButtonState::Held || self.gamepad.two == ButtonState::Pressed,
         );
 
+        // Day counter
+        set_colors(0x21);
+        minifont::draw(format!("Day:{:02}", self.day_counter), 40, 142);
+
         // Hurl data
         set_colors(0x21);
-        minifont::draw(format!("-{} potatoes", self.hurl_cost), 117, 140);
-        minifont::draw("-1 orcs".into(), 117, 146);
+        minifont::draw(format!("-{} potatoes", self.hurl_cost), 117, 142);
+        minifont::draw("-1 orcs".into(), 117, 148);
 
         if self.is_game_over() {
             self.draw_overlay();
@@ -101,7 +106,6 @@ impl Game {
 
             // Retry button
             self.draw_button("(R)RETRY", 82, 138, false);
-
         } else if let Some(roll) = &self.roll {
             self.draw_overlay();
 
