@@ -110,8 +110,12 @@ impl Game {
             self.draw_overlay();
 
             // Dice
-            sprites::die(roll.main_result, 62, 20);
-            sprites::die(roll.sub_result, 82, 20);
+            if roll.sub_result == 0 {
+                sprites::die(roll.main_result, 72, 20);
+            } else {
+                sprites::die(roll.main_result, 62, 20);
+                sprites::die(roll.sub_result, 82, 20);
+            }
 
             // Description text
             set_colors(0x4);
