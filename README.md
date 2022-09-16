@@ -2,6 +2,9 @@
 
 An implementation of the single-page RPG [Potato by Oliver Darkshire](https://twitter.com/deathbybadger/status/1567425842526945280) written for the [WASM-4](https://wasm4.org) fantasy console.
 
+![Game screen](https://github.com/michaelenger/poteto/raw/main/screenshot1.png)
+![Roll result screen](https://github.com/michaelenger/poteto/raw/main/screenshot2.png)
+
 ## Requirements
 
 * [Rust](https://www.rust-lang.org/)
