@@ -6,6 +6,15 @@ use crate::roll::{Roll, RollEffect};
 use crate::sprites;
 use crate::wasm4;
 
+/// Convert an amount to text with a + or - in front.
+fn amount_text(amount: &i8) -> String {
+    if *amount > 0 {
+        format!("+{}", amount)
+    } else {
+        format!("{}", amount)
+    }
+}
+
 pub struct Game {
     destiny: u8,
     potatoes: u8,
@@ -74,19 +83,58 @@ impl Game {
                 self.gamepad.two == ButtonState::Held || self.gamepad.two == ButtonState::Pressed,
             );
 
-            // Dice
-            match &self.roll {
-                Some(roll) => {
-                    sprites::die(roll.main_result, 21, 138);
-                    sprites::die(roll.sub_result, 41, 138);
-                }
-                None => {}
-            }
-
             // Hurl data
             set_colors(0x21);
             minifont::draw(format!("-{} potatoes", self.hurl_cost), 117, 140);
             minifont::draw("-1 orcs".into(), 117, 146);
+        }
+
+        if let Some(roll) = &self.roll {
+            // Overlay
+            set_colors(0x4);
+            wasm4::rect(12, 12, 140, 140);
+            set_colors(0x21);
+            wasm4::rect(10, 10, 140, 140);
+
+            // Dice
+            sprites::die(roll.main_result, 62, 20);
+            sprites::die(roll.sub_result, 82, 20);
+
+            // Description text
+            set_colors(0x4);
+            wasm4::text(&roll.description, 16, 44);
+
+            // Effect text
+            set_colors(0x21);
+            let mut line = 0;
+            for effect in &roll.effects {
+                let text = match effect {
+                    RollEffect::Destiny(num) => {
+                        format!("{} destiny", amount_text(num))
+                    }
+                    RollEffect::HurlCost(num) => {
+                        format!("{} cost to hurl", amount_text(&(*num as i8)))
+                    }
+                    RollEffect::Potatoes(num) => {
+                        format!("{} potatoes", amount_text(num))
+                    }
+                    RollEffect::Orcs(num) => {
+                        format!("{} orcs", amount_text(num))
+                    }
+                };
+
+                minifont::draw(text, 80, 114 + (line * 8));
+
+                line += 1;
+            }
+
+            // Continue button
+            self.draw_button(
+                "(X)CONTINUE",
+                58,
+                138,
+                self.gamepad.one == ButtonState::Held || self.gamepad.one == ButtonState::Pressed,
+            );
         }
     }
 
@@ -118,40 +166,45 @@ impl Game {
         }
     }
 
-    fn roll(&mut self) {
-        self.day_counter += 1;
-        let roll = Roll::new(&mut self.rng);
+    fn roll_or_effect(&mut self) {
+        match &self.roll {
+            Some(roll) => {
+                for effect in &roll.effects {
+                    match effect {
+                        RollEffect::Destiny(amount) => {
+                            if *amount < 0 && self.destiny == 0 {
+                                continue;
+                            }
+                            let val: i8 = (self.destiny as i8) + (*amount as i8);
+                            self.destiny = val as u8;
+                        }
+                        RollEffect::HurlCost(amount) => {
+                            self.hurl_cost += *amount;
+                        }
+                        RollEffect::Potatoes(amount) => {
+                            if *amount < 0 && self.potatoes == 0 {
+                                continue;
+                            }
+                            let val: i8 = (self.potatoes as i8) + (*amount as i8);
+                            self.potatoes = val as u8;
+                        }
+                        RollEffect::Orcs(amount) => {
+                            if *amount < 0 && self.orcs == 0 {
+                                continue;
+                            }
+                            let val: i8 = (self.orcs as i8) + (*amount as i8);
+                            self.orcs = val as u8;
+                        }
+                    }
+                }
 
-        for effect in &roll.effects {
-            match effect {
-                RollEffect::Destiny(amount) => {
-                    if *amount < 0 && self.destiny == 0 {
-                        break;
-                    }
-                    let val: i8 = (self.destiny as i8) + (*amount as i8);
-                    self.destiny = val as u8;
-                }
-                RollEffect::HurlCost(amount) => {
-                    self.hurl_cost += *amount;
-                }
-                RollEffect::Potatoes(amount) => {
-                    if *amount < 0 && self.potatoes == 0 {
-                        break;
-                    }
-                    let val: i8 = (self.potatoes as i8) + (*amount as i8);
-                    self.potatoes = val as u8;
-                }
-                RollEffect::Orcs(amount) => {
-                    if *amount < 0 && self.orcs == 0 {
-                        break;
-                    }
-                    let val: i8 = (self.orcs as i8) + (*amount as i8);
-                    self.orcs = val as u8;
-                }
+                self.roll = None;
+            }
+            None => {
+                self.day_counter += 1;
+                self.roll = Some(Roll::new(&mut self.rng));
             }
         }
-
-        self.roll = Some(roll);
     }
 
     fn hurl(&mut self) {
@@ -172,7 +225,7 @@ impl Game {
             self.rng.tick();
 
             if self.gamepad.one == ButtonState::Released {
-                self.roll();
+                self.roll_or_effect();
             }
             if self.gamepad.two == ButtonState::Released {
                 self.hurl();
