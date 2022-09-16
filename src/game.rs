@@ -42,10 +42,7 @@ impl Game {
 
     fn draw(&self) {
         // Title
-        set_colors(0x04);
-        wasm4::text("POTE~TO", 6, 6);
-        set_colors(0x03);
-        wasm4::text("POTE~TO", 5, 5);
+        self.draw_title("POTE~TO", 5, 5);
 
         // Headers
         set_colors(0x04);
@@ -62,39 +59,51 @@ impl Game {
         set_colors(0x03);
         wasm4::text(format!("Day:{:02}", self.day_counter), 106, 5);
 
+        // Buttons
+        self.draw_button(
+            "(X)ROLL",
+            10,
+            128,
+            self.gamepad.one == ButtonState::Held || self.gamepad.one == ButtonState::Pressed,
+        );
+
+        self.draw_button(
+            "(Z)HURL",
+            90,
+            128,
+            self.gamepad.two == ButtonState::Held || self.gamepad.two == ButtonState::Pressed,
+        );
+
+        // Hurl data
+        set_colors(0x21);
+        minifont::draw(format!("-{} potatoes", self.hurl_cost), 117, 140);
+        minifont::draw("-1 orcs".into(), 117, 146);
+
         if self.is_game_over() {
-            set_colors(0x04);
-            wasm4::text("GAME OVER", 43, 131);
-            set_colors(0x03);
-            wasm4::text("GAME OVER", 42, 130);
-        } else {
-            // Buttons
-            self.draw_button(
-                "(X)ROLL",
-                10,
-                128,
-                self.gamepad.one == ButtonState::Held || self.gamepad.one == ButtonState::Pressed,
-            );
+            self.draw_overlay();
 
-            self.draw_button(
-                "(Z)HURL",
-                90,
-                128,
-                self.gamepad.two == ButtonState::Held || self.gamepad.two == ButtonState::Pressed,
-            );
+            // Text
+            if self.destiny >= 10 {
+                self.draw_title("Your Destiny", 30, 20);
+                self.draw_title("Awaits", 56, 32);
+                set_colors(0x4);
+                wasm4::text("An interfering\nbard or wizard\nturns up at your\ndoorstep with a\nquest, and you\nare whisked away\nagainst your\nwill on an\nadventure.", 16, 50);
+            } else if self.potatoes >= 10 {
+                self.draw_title("Fully Stocked", 26, 20);
+                set_colors(0x4);
+                wasm4::text("You have enough\npotatoes that\nyou can go\nunderground and\nnot return to\nthe surface\nuntil the danger\nis past. You\nnestle down in\nyour burrow and\nenjoy your well\nearned rest.", 16, 34);
+            } else if self.orcs >= 10 {
+                self.draw_title("The Orcish", 40, 20);
+                self.draw_title("Horde Arrives!", 26, 32);
+                set_colors(0x4);
+                wasm4::text("The orcs finally\nfind your potato\nfarm. Alas, orcs\nare not so\ninterested in\npotatoes as they\nare in eating\nyou, and you end\nup in a cookpot.", 16, 50);
+            }
 
-            // Hurl data
-            set_colors(0x21);
-            minifont::draw(format!("-{} potatoes", self.hurl_cost), 117, 140);
-            minifont::draw("-1 orcs".into(), 117, 146);
-        }
+            // Retry button
+            self.draw_button("(R)RETRY", 82, 138, false);
 
-        if let Some(roll) = &self.roll {
-            // Overlay
-            set_colors(0x4);
-            wasm4::rect(12, 12, 140, 140);
-            set_colors(0x21);
-            wasm4::rect(10, 10, 140, 140);
+        } else if let Some(roll) = &self.roll {
+            self.draw_overlay();
 
             // Dice
             sprites::die(roll.main_result, 62, 20);
@@ -150,6 +159,14 @@ impl Game {
         }
     }
 
+    fn draw_overlay(&self) {
+        // Overlay
+        set_colors(0x4);
+        wasm4::rect(12, 12, 140, 140);
+        set_colors(0x21);
+        wasm4::rect(10, 10, 140, 140);
+    }
+
     fn draw_pips(&self, num: u8, x: i32, y: i32) {
         let size: u32 = 14;
 
@@ -164,6 +181,13 @@ impl Game {
 
             wasm4::rect(x + (offset as i32), y, size, size);
         }
+    }
+
+    fn draw_title(&self, text: &str, x: i32, y: i32) {
+        set_colors(0x04);
+        wasm4::text(text, x + 1, y + 1);
+        set_colors(0x03);
+        wasm4::text(text, x, y);
     }
 
     fn roll_or_effect(&mut self) {
