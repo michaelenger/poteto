@@ -5,6 +5,8 @@ An implementation of the single-page RPG [Potato by Oliver Darkshire](https://tw
 ![Game screen](https://github.com/michaelenger/poteto/raw/main/screenshot1.png)
 ![Roll result screen](https://github.com/michaelenger/poteto/raw/main/screenshot2.png)
 
+[Give it a try!](https://michaelenger.github.io/poteto/)
+
 ## Requirements
 
 * [Rust](https://www.rust-lang.org/)
